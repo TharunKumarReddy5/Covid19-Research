@@ -43,6 +43,7 @@ reg = ['India']
 
 for m in range(len(reg)):
     frame = frame_main[frame_main['Region'] == reg[m]]
+    frame = frame[frame['Date']<='2020-09-14']
     set_size = len(frame)
     train_size = 164
     test_size = set_size - train_size
@@ -134,6 +135,7 @@ for m in range(len(reg)):
     day_count = 0
     turning_point = 0
 
+
     S_predict = [S[-1]]
     X_predict = [X[-1]]
     R_predict = [R[-1]]
@@ -160,7 +162,7 @@ for m in range(len(reg)):
 
         next_S = ((-predict_beta[-1] * S_predict[-1] * X_predict[-1]) / population) + S_predict[-1]
 
-        next_X = ((-predict_beta[-1] * S_predict[-1] * X_predict[-1]) / population) - (
+        next_X = ((predict_beta[-1] * S_predict[-1] * X_predict[-1]) / population) - (
                     predict_gamma[-1] * X_predict[-1]) + X_predict[-1]
 
         next_R = (predict_gamma[-1] * X_predict[-1]) + R_predict[-1]
@@ -386,7 +388,7 @@ for m in range(len(reg)):
         for i in range(len(rates)):
             pt = ['-', '--', '-.', ':'][i % 4]
             plt.plot(S_total[i], label='Svac for p = ' + str(rates[i]), linestyle=pt, color='darkgoldenrod')
-            plt.plot(R_total[i], label='Rvac for p = ' + str(rates[i]), linestyle=pt, color='darkgreen')
+            plt.plot(V_total[i], label='Rvac for p = ' + str(rates[i]), linestyle=pt, color='darkgreen')
         plt.xlabel('Days')
         plt.ylabel('Population')
         plt.title('SIRV Compartmental Graph - S and V change wrt p')
