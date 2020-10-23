@@ -39,7 +39,7 @@ for i in union_terr:
     # print(i)
     reg.remove(i)
 
-reg = ['India']
+#reg = ['India'] -- Use for sample test
 
 for m in range(len(reg)):
     frame = frame_main[frame_main['Region'] == reg[m]]
