@@ -8,7 +8,6 @@ from sklearn.model_selection import GridSearchCV
 from numpy import zeros, linspace
 from sklearn.metrics import *
 
-
 def data_split(data, orders):
     x_train = np.empty((len(data) - orders, orders))
     y_train = data[orders:]
@@ -31,7 +30,7 @@ def ridge(x, y):
     return clf
 
 
-frame_main = pd.read_csv(r'F:\Goldmansachs\Datathon\India Data\State_dataset.csv')
+frame_main = pd.read_csv(r'C:\Users\tharun\Documents\GitHub\Covid19-Research\Datasets\Input\State_dataset.csv')
 reg = list(np.unique(frame_main['Region']))
 union_terr = ['Dadra & Nagar Haveli and Daman & Diu', 'Lakshadweep', 'Ladakh', 'Puducherry']
 
@@ -39,13 +38,15 @@ for i in union_terr:
     # print(i)
     reg.remove(i)
 
-#reg = ['India'] -- Use for sample test
+#-- Use for sample test
+#reg = ['India'] 
 
 for m in range(len(reg)):
     frame = frame_main[frame_main['Region'] == reg[m]]
-    frame = frame[frame['Date']<='2020-09-14']
+    frame = frame.reset_index(drop=True)
+    #frame = frame[frame['Date']<='2020-09-14']
     set_size = len(frame)
-    train_size = 164
+    train_size = 200
     test_size = set_size - train_size
     frame1 = frame.head(train_size)
     X_tot = frame['totalConfirmed'] - frame['totalRecovered'] - frame['totalFatalities']
@@ -428,7 +429,7 @@ for m in range(len(reg)):
             ['Confirmed', 'Deceased', 'Recovered', 'totalConfirmed', 'totalFatalities',
              'totalRecovered']].reset_index()], axis=1)
     if m == 0:
-        main_data.to_csv(r'F:\Goldmansachs\Datathon\India Data\Tableau SIR Data.csv')
+        main_data.to_csv(r'C:\Users\tharun\Documents\GitHub\Covid19-Research\Datasets\Output\Tableau SIR Data India.csv')
     else:
-        main_data.to_csv(r'F:\Goldmansachs\Datathon\India Data\Tableau SIR Data.csv', mode='a', header=False)
+        main_data.to_csv(r'C:\Users\tharun\Documents\GitHub\Covid19-Research\Datasets\Output\Tableau SIR Data India.csv', mode='a', header=False)
     print(reg[m])
