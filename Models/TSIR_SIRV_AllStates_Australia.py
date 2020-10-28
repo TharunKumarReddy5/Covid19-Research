@@ -9,11 +9,11 @@ from numpy import zeros, linspace
 from sklearn.metrics import *
 
 
-def data_split(data, orders):
-    x_train = np.empty((len(data) - orders, orders))
-    y_train = data[orders:]
-    for i in range(len(data) - orders):
-        x_train[i] = data[i: orders + i]
+def data_split(data, orders,start):
+    x_train = np.empty((len(data) -start - orders, orders))
+    y_train = data[start+orders:]
+    for i in range(len(data) -start - orders):
+        x_train[i] = data[i+start:start+ orders + i]
     return x_train, y_train
 
 
@@ -31,7 +31,7 @@ def ridge(x, y):
     return clf
 
 
-frame_main = pd.read_csv(r'F:\Goldmansachs\Datathon\World Data\Australia.csv')
+frame_main = pd.read_csv(r'C:\Users\tharun\Documents\GitHub\Covid19-Research\Datasets\Input\Australia.csv')
 reg = list(np.unique(frame_main['Region']))
 #union_terr = ['Dadra & Nagar Haveli and Daman & Diu', 'Lakshadweep', 'Ladakh', 'Puducherry']
 #
@@ -80,12 +80,15 @@ for m in range(len(reg)):
     gamma = np.nan_to_num(gamma)
 
     R0 = np.divide(beta, gamma, out=np.zeros_like(beta), where=gamma != 0)
+    R0[60] = 4.39239555
+    print(R0)
+    print("R0 printed")
 
     R0 = np.nan_to_num(R0)
     orders_beta = 30
     orders_gamma = 30
-    start_beta = 10
-    start_gamma = 10
+    start_beta = 0
+    start_gamma = 0
 
     print("\nThe latest transmission rate beta of SIR model:", beta[-1])
     print("The latest recovering rate gamma for SIR model : ", gamma[-1])
@@ -93,11 +96,12 @@ for m in range(len(reg)):
 
     ### SPLITING DATA INTO TRAINING SET AND TEST SET###
 
-    x_beta, y_beta = data_split(beta, orders_beta)
+    x_beta, y_beta = data_split(beta, orders_beta,start_beta)
     x_beta = np.nan_to_num(x_beta)
     y_beta = np.nan_to_num(y_beta)
-    x_gamma, y_gamma = data_split(gamma, orders_gamma)
+    x_gamma, y_gamma = data_split(gamma, orders_gamma,start_gamma)
 
+    
     ################### TRAINING #####################
 
     clf_beta = Ridge(alpha=0.0003675, copy_X=True, fit_intercept=False, max_iter=None, normalize=True,
@@ -182,6 +186,7 @@ for m in range(len(reg)):
     print('Newly Recovered + Death toll tomorrow : ', np.rint(R_predict[1] - R_predict[0]))
     print('Confirmed cases on the end day :', np.rint(X_predict[-2] + R_predict[-2]))
 
+  
     ####### Plot the time evolution of TSIR model ######
 
     plt.figure(3)
@@ -235,7 +240,7 @@ for m in range(len(reg)):
             R0.append(beta[i] / gamma[i - 1])
         else:
             R0.append(beta[i] / gamma[i])
-
+ 
     for i in range(len(beta_hat)):
         predicted_R0.append(beta_hat[i] / gamma_hat[i])
 
@@ -256,16 +261,21 @@ for m in range(len(reg)):
     mean_sqerr = mean_squared_error(np.array(X1) / np.array(X1), np.array(X_testpred) / np.array(X1))
     print('Mean squared error % for infected predictions is: ' + str(mean_sqerr * 100))
 
-    t = np.array(range(orders_beta, train_size - 1))
+    t = np.array(range(orders_beta+start_beta, train_size - 1))
 
     plt.figure(6)
-    plt.plot(t, R0[orders_beta:], 'o--', label='actual_R0', color='chocolate')
-    plt.plot(range(orders_beta - 1, t[-1]), predicted_R0, 'o--', label='predicted_R0', color='darkgreen')
+    plt.plot(t, R0[orders_beta+start_beta:], 'o--', label='actual_R0', color='chocolate')
+    plt.plot(range(orders_beta+start_beta - 1, t[-1]), predicted_R0, 'o--', label='predicted_R0', color='darkgreen')
     plt.xlabel('Day')
     plt.ylabel('R0')
     plt.title('R0 of the model')
     plt.legend()
     plt.show()
+
+   
+    
+    
+
 
     plt.figure(7)
     plt.plot(error_R0, 'o--', label='R0_error', color='chocolate')
@@ -412,25 +422,5 @@ for m in range(len(reg)):
         V_total.columns = ['V_p_0.005', 'V_p_0.007', 'V_p_0.01', 'V_p_0.05']
         I_total['I_predict'] = np.append(X, X_predict[1:])
         R_total['R_predict'] = np.append(R, R_predict[1:])
-        main_data = pd.DataFrame()
-        main_data = pd.concat([I_total, R_total, S_total, V_total], axis=1)
-        l1 = list(beta)[:orders_beta] + list(beta_hat)[:-orders_beta] + list(predict_beta)
-        l1.insert(0, 0)
-        l2 = list(gamma)[:orders_gamma] + list(gamma_hat)[:-orders_gamma] + list(predict_gamma)
-        l2.insert(0, 0)
-        main_data['beta'] = l1
-        main_data['gamma'] = l2
-        main_data['Region'] = np.unique(frame['Region'])[0]
-        main_data['Population'] = np.unique(frame['Population'])[0]
-        main_data['Date'] = pd.date_range(start=np.array(frame['Date'])[0], periods=len(main_data), freq='D')
-        main_data['I_actual'] = list(X_tot) + list(zeros(len(I_total) - len(X_tot)))
-        main_data['R_actual'] = list(R_tot) + list(zeros(len(R_total) - len(R_tot)))
-        main_data['S_actual'] = list(R_tot) + list(zeros(len(S_total) - len(S_tot)))  # typo or actually like this?
-        main_data = pd.concat([main_data, frame[
-            ['Confirmed', 'Deceased', 'Recovered', 'totalConfirmed', 'totalFatalities',
-             'totalRecovered']].reset_index()], axis=1)
-    if m == 0:
-        main_data.to_csv(r'F:\Goldmansachs\Datathon\India Data\Tableau SIR Data Aus.csv')
-    else:
-        main_data.to_csv(r'F:\Goldmansachs\Datathon\India Data\Tableau SIR Data Aus.csv', mode='a', header=False)
     print(reg[m])
+
