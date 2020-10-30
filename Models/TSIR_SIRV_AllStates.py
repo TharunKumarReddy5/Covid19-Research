@@ -224,10 +224,10 @@ for m in range(len(reg)):
     error_R0 = []
 
     for i in range(len(X1)):
-        error_X.append(abs(X1[i] - X_testpred[i]) / X1[i])
+        error_X.append(abs(X1[i] - X_testpred[i]) * 100 / X1[i])
 
     for i in range(len(R1)):
-        error_R.append(abs(R1[i] - R_testpred[i]) / R1[i])
+        error_R.append(abs(R1[i] - R_testpred[i]) * 100 / R1[i])
 
     for i in range(len(beta)):
         if gamma[i] == 0:
@@ -239,7 +239,7 @@ for m in range(len(reg)):
         predicted_R0.append(beta_hat[i] / gamma_hat[i])
 
     for i in range(len(predicted_R0)):
-        error_R0.append(abs(R0[orders_beta + i] - predicted_R0[i]) / R0[orders_beta + i])
+        error_R0.append(abs(R0[orders_beta + i] - predicted_R0[i]) *100 / R0[orders_beta + i])
 
     plt.figure(5)
     plt.plot(t, error_X, 'o--', label=r'$X(t)$', color='chocolate')
